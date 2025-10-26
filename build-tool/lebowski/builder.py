@@ -259,6 +259,8 @@ class Builder:
 
     def _build_in_container(self, source_dir: Path, manifest: Dict[str, Any]) -> Dict[str, Any]:
         """Build package in container for reproducibility"""
+        import os
+
         # Check if docker/podman is available
         container_runtime = self._detect_container_runtime()
 
@@ -268,10 +270,96 @@ class Builder:
                 "Install docker or podman, or use --no-container (not recommended)."
             )
 
-        # TODO: Implement container build
-        # For now, fall back to local build
-        print("  (Container build not fully implemented yet, using local build)")
-        return self._build_local(source_dir, manifest)
+        print(f"  Using {container_runtime} for reproducible build")
+
+        # Build or pull container image
+        container_image = self._ensure_container_image(container_runtime)
+
+        # Prepare environment for container
+        env_args = []
+        for key, value in self.opinion.modifications.env.items():
+            env_args.extend(['-e', f'{key}={value}'])
+
+        # Add reproducible build environment
+        env_args.extend([
+            '-e', 'SOURCE_DATE_EPOCH=1704067200',
+            '-e', 'TZ=UTC',
+            '-e', 'LANG=C.UTF-8',
+            '-e', 'LC_ALL=C.UTF-8',
+            '-e', 'DEB_BUILD_OPTIONS=nodoc nocheck',
+        ])
+
+        # Add compiler flags
+        if self.opinion.modifications.cflags:
+            env_args.extend(['-e', f"DEB_CFLAGS_APPEND={' '.join(self.opinion.modifications.cflags)}"])
+        if self.opinion.modifications.cxxflags:
+            env_args.extend(['-e', f"DEB_CXXFLAGS_APPEND={' '.join(self.opinion.modifications.cxxflags)}"])
+        if self.opinion.modifications.ldflags:
+            env_args.extend(['-e', f"DEB_LDFLAGS_APPEND={' '.join(self.opinion.modifications.ldflags)}"])
+
+        # Add configure flags
+        if self.opinion.modifications.configure_flags:
+            add_flags = self.opinion.modifications.configure_flags.get('add', [])
+            if add_flags:
+                env_args.extend(['-e', f"DEB_CONFIGURE_EXTRA_FLAGS={' '.join(add_flags)}"])
+
+        # Mount source directory and output directory
+        build_dir = source_dir.parent
+
+        # Run build in container
+        cmd = [
+            container_runtime, 'run',
+            '--rm',  # Remove container after build
+            '-v', f'{build_dir}:/build:rw',  # Mount build directory
+            '-w', f'/build/{source_dir.name}',  # Set working directory
+        ] + env_args + [
+            container_image,
+            'dpkg-buildpackage', '-us', '-uc', '-b', '-d'
+        ]
+
+        if self.verbose:
+            print(f"  Container command: {' '.join(cmd)}")
+
+        result = subprocess.run(
+            cmd,
+            capture_output=not self.verbose,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            raise BuildError(f"Container build failed with code {result.returncode}")
+
+        # Find built packages (same as local build)
+        parent_dir = source_dir.parent
+        deb_files = list(parent_dir.glob("*.deb"))
+
+        if not deb_files:
+            raise BuildError("No .deb file produced")
+
+        package_path = deb_files[0]
+        sha256 = self._hash_file(package_path)
+
+        buildinfo_files = list(parent_dir.glob("*.buildinfo"))
+        buildinfo_path = buildinfo_files[0] if buildinfo_files else None
+
+        # Record build method in manifest
+        manifest['build_method'] = 'container'
+        manifest['container'] = {
+            'runtime': container_runtime,
+            'image': container_image,
+        }
+
+        manifest['output'] = {
+            'package_file': package_path.name,
+            'package_sha256': sha256,
+            'buildinfo_file': buildinfo_path.name if buildinfo_path else None,
+        }
+
+        return {
+            'package_path': package_path,
+            'sha256': sha256,
+            'buildinfo_path': buildinfo_path,
+        }
 
     def _build_local(self, source_dir: Path, manifest: Dict[str, Any]) -> Dict[str, Any]:
         """Build package locally using dpkg-buildpackage"""
@@ -471,3 +559,50 @@ class Builder:
             if shutil.which(runtime):
                 return runtime
         return None
+
+    def _ensure_container_image(self, runtime: str) -> str:
+        """Ensure container image exists, build if necessary"""
+        import os
+
+        image_name = "lebowski/builder:bookworm"
+
+        # Check if image exists
+        check_cmd = [runtime, 'images', '-q', image_name]
+        result = subprocess.run(check_cmd, capture_output=True, text=True)
+
+        if result.returncode == 0 and result.stdout.strip():
+            print(f"  Using existing container image: {image_name}")
+            return image_name
+
+        # Image doesn't exist - build it
+        print(f"  Building container image: {image_name}")
+
+        # Find Dockerfile
+        script_dir = Path(__file__).parent.parent.parent  # lebowski/build-tool/lebowski -> lebowski/
+        dockerfile = script_dir / "containers" / "debian-bookworm-builder.Dockerfile"
+
+        if not dockerfile.exists():
+            raise BuildError(f"Container Dockerfile not found: {dockerfile}")
+
+        # Build image
+        build_cmd = [
+            runtime, 'build',
+            '-t', image_name,
+            '-f', str(dockerfile),
+            str(dockerfile.parent)
+        ]
+
+        if self.verbose:
+            print(f"  Build command: {' '.join(build_cmd)}")
+
+        result = subprocess.run(
+            build_cmd,
+            capture_output=not self.verbose,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            raise BuildError(f"Failed to build container image: {result.stderr}")
+
+        print(f"  ✓ Container image built: {image_name}")
+        return image_name
