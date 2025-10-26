@@ -44,7 +44,7 @@ Build and verify essential utilities:
 ### 2. Missing Features
 
 **Critical:**
-- [ ] `verify` command - rebuild and compare hashes
+- [x] `verify` command - rebuild and compare hashes
 - [ ] Error handling improvements
 - [ ] Better progress output
 - [ ] Usage examples
@@ -63,9 +63,9 @@ Build and verify essential utilities:
 ### 3. Documentation
 
 - [x] README
-- [ ] INSTALL guide
-- [ ] Opinion authoring guide
-- [ ] Verification guide
+- [x] INSTALL guide
+- [x] Opinion authoring guide
+- [ ] Verification guide (covered in INSTALL + OPINION-GUIDE)
 - [ ] FAQ
 - [ ] Architecture docs
 - [ ] API docs (if library use)
