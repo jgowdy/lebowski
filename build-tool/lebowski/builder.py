@@ -306,6 +306,9 @@ class Builder:
         toolchain_info = self._get_toolchain_info(env)
         manifest['toolchain'] = toolchain_info
 
+        # Skip documentation building (avoid texlive dependency)
+        env['DEB_BUILD_OPTIONS'] = 'nodoc nocheck'
+
         # Record build environment (reproducibility critical!)
         manifest['environment'] = {
             'SOURCE_DATE_EPOCH': env.get('SOURCE_DATE_EPOCH'),
@@ -318,6 +321,7 @@ class Builder:
             'DEB_CXXFLAGS_APPEND': env.get('DEB_CXXFLAGS_APPEND'),
             'DEB_LDFLAGS_APPEND': env.get('DEB_LDFLAGS_APPEND'),
             'DEB_CONFIGURE_EXTRA_FLAGS': env.get('DEB_CONFIGURE_EXTRA_FLAGS'),
+            'DEB_BUILD_OPTIONS': env.get('DEB_BUILD_OPTIONS'),
             'PATH': env.get('PATH'),  # Critical - toolchain location
         }
 
