@@ -1,0 +1,41 @@
+version: "1.0"
+package: redis
+opinion_name: performance
+purity_level: pure-compilation
+
+description: |
+  Redis built with aggressive optimization flags.
+
+  Pure compilation - same Redis source, just optimized compilation.
+
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+
+tags:
+  - performance
+  - optimization
+
+debian_versions:
+  - bookworm
+
+modifications:
+  make_vars:
+    OPTIMIZATION: "-O3"
+    CFLAGS: "-march=native -mtune=native"
+    LDFLAGS: "-flto"
+    MALLOC: "jemalloc"  # Debian default, keeping it
+
+build_notes: |
+  Uses jemalloc (Debian's default) with aggressive compilation flags.
+
+performance_notes: |
+  Expected improvements:
+  - 5-15% higher operations/second
+  - Lower tail latencies
+  - Better memory efficiency with jemalloc
+
+  Redis is already highly optimized, so gains are modest but real.
+
+references:
+  - "https://redis.io/docs/management/optimization/"

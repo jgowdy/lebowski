@@ -1,0 +1,53 @@
+version: "1.0"
+package: linux
+opinion_name: server
+purity_level: configure-only
+
+description: |
+  Server-optimized kernel configuration (Debian's defaults).
+
+  This is essentially stock Debian kernel config, provided as an opinion
+  for consistency and as a baseline for comparison.
+
+  Optimized for:
+  - Maximum throughput
+  - Many concurrent connections
+  - Server workloads
+  - Minimal overhead
+
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+
+tags:
+  - server
+  - throughput
+  - default
+
+debian_versions:
+  - bookworm
+
+modifications:
+  kernel_config:
+    # 250Hz timer (Debian default)
+    CONFIG_HZ_250: "y"
+    CONFIG_HZ: "250"
+
+    # Voluntary preemption (better throughput)
+    CONFIG_PREEMPT_VOLUNTARY: "y"
+
+    # Tickless
+    CONFIG_NO_HZ_COMMON: "y"
+
+performance_notes: |
+  This is Debian's default configuration, optimized for server workloads
+  where throughput matters more than latency.
+
+  Best for:
+  - Database servers
+  - Web servers (high concurrency)
+  - Batch processing
+  - Background services
+
+references:
+  - "https://www.debian.org/doc/manuals/debian-kernel-handbook/"

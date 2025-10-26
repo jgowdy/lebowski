@@ -1,0 +1,56 @@
+# XSC Test Subset - Critical Packages
+# Build these first to prove Lebowski + XSC integration works
+# ~15 packages covering essential functionality
+
+## TIER 1: Absolute Essentials (5 packages)
+# These must work or system won't boot
+
+bash                    # Shell
+coreutils               # ls, cp, mv, cat, etc.
+util-linux              # mount, umount, fdisk, etc.
+openssh-server          # Remote access
+systemd                 # Init system (or sysvinit if simpler)
+
+## TIER 2: Package Management (3 packages)
+# Need these to install more packages
+
+apt                     # Package manager
+dpkg                    # Package installation
+gnupg                   # Repository signing
+
+## TIER 3: Key Services (4 packages)
+# Prove services work with XSC
+
+nginx                   # Web server - heavy I/O, perfect for XSC rings
+postgresql-15           # Database - proves complex app works
+python3                 # Runtime - proves interpreter works
+redis-server            # Cache - proves network services work
+
+## TIER 4: Development & Testing (3 packages)
+# Verify we can compile and debug on XSC
+
+gcc                     # Compiler - proves toolchain works
+gdb                     # Debugger - needed for testing
+strace                  # System call tracer - CRITICAL: should show NO syscalls!
+
+## Total: 15 packages
+# If these build and work, scaling to 400 is just iteration
+
+## Success Criteria:
+
+# 1. All packages build successfully with x86_64-xsc-linux-gnu toolchain
+# 2. All binaries contain XSC_ABI ELF note
+# 3. All binaries have ZERO traditional syscall instructions
+# 4. All binaries link against libxsc-rt
+# 5. Services start and function correctly
+# 6. strace shows NO syscalls during operation
+
+## Test Process:
+
+# Phase 1: Build all 15 packages
+# Phase 2: Verify XSC compliance (no syscalls, XSC_ABI notes)
+# Phase 3: Create minimal repository
+# Phase 4: Debootstrap test system
+# Phase 5: Boot and test
+# Phase 6: Run verification tests (nginx serves pages, postgres queries work, etc.)
+# Phase 7: If all pass -> scale to full 400 packages

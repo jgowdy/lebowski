@@ -1,0 +1,73 @@
+version: "1.0"
+package: util-linux
+opinion_name: xsc-base
+purity_level: configure-only
+
+description: |
+  util-linux built for XSC architecture (x86_64-xsc-linux-gnu).
+
+  Uses ring-based syscalls instead of traditional syscall instructions.
+  No CPU traps - all system calls via submission/completion rings.
+
+  Hardware CFI enforcement when running on supported CPUs.
+
+maintainer:
+  name: Lebowski + XSC Project
+  email: opinions@lebowski.org
+
+tags:
+  - xsc
+  - ring-syscalls
+  - hardware-cfi
+
+debian_versions:
+  - bookworm
+
+xsc_variant: base  # or: cfi-compat (requires CET/PAC hardware)
+
+modifications:
+  configure_flags:
+    add:
+      - "--host=x86_64-xsc-linux-gnu"
+      - "--build=x86_64-linux-gnu"
+
+  env:
+    CC: "x86_64-xsc-linux-gnu-gcc"
+    CXX: "x86_64-xsc-linux-gnu-g++"
+    LD: "x86_64-xsc-linux-gnu-ld"
+    AR: "x86_64-xsc-linux-gnu-ar"
+    RANLIB: "x86_64-xsc-linux-gnu-ranlib"
+    CFLAGS: "-O2 -g"
+    CXXFLAGS: "-O2 -g"
+    LDFLAGS: "-lxsc-rt"
+
+  build_deps:
+    add:
+      - libxsc-rt-dev
+      - x86_64-xsc-linux-gnu-gcc
+      - x86_64-xsc-linux-gnu-binutils
+
+build_notes: |
+  Requires XSC toolchain installed from ~/flexsc/build-xsc-toolchain.sh
+
+  Build time: Similar to standard Debian build
+
+verification_notes: |
+  After build, verify XSC compliance:
+
+  # No syscall instructions (critical!)
+  objdump -d PACKAGE | grep syscall
+  # Should be EMPTY
+
+  # XSC_ABI note present
+  readelf -n PACKAGE | grep XSC_ABI
+  # Should show: XSC_ABI   version: 1
+
+  # Links against libxsc-rt
+  ldd PACKAGE | grep libxsc-rt
+  # Should show: libxsc-rt.so.1
+
+references:
+  - "https://github.com/jgowdy/xsc-os"
+  - "~/flexsc/README.md"
+  - "~/lebowski/docs/xsc-integration.md"

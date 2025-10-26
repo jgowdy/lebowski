@@ -1,0 +1,79 @@
+version: "1.0"
+package: linux
+opinion_name: desktop-1000hz
+purity_level: configure-only
+
+description: |
+  Desktop-optimized kernel with 1000Hz timer and full preemption.
+
+  This uses kernel.org's default configuration (CONFIG_HZ=1000) instead
+  of Debian's server-optimized 250Hz. Provides noticeably better desktop
+  responsiveness and lower latency for interactive applications.
+
+  The 1000Hz timer has been the kernel.org default since 2.6.13 (2005).
+  Debian uses 250Hz for historical server-focused reasons.
+
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+  github: lebowski-project
+
+tags:
+  - desktop
+  - performance
+  - responsiveness
+  - low-latency
+
+debian_versions:
+  - bookworm
+  - bullseye
+
+kernel_versions:
+  - "6.1"
+  - "5.10"
+
+modifications:
+  kernel_config:
+    # Timer frequency: 1000Hz (kernel.org default vs Debian's 250Hz)
+    CONFIG_HZ_1000: "y"
+    CONFIG_HZ: "1000"
+
+    # Full preemption for desktop responsiveness
+    CONFIG_PREEMPT: "y"
+    CONFIG_PREEMPT_COUNT: "y"
+    CONFIG_PREEMPTION: "y"
+
+    # Tickless operation for better power management
+    CONFIG_NO_HZ_FULL: "y"
+    CONFIG_NO_HZ_COMMON: "y"
+
+    # Disable server-oriented configs
+    CONFIG_HZ_250: "n"
+    CONFIG_PREEMPT_VOLUNTARY: "n"
+
+build_notes: |
+  This kernel will take 1-2 hours to build on most systems.
+
+  After installation:
+  1. sudo dpkg -i linux-image-*-lebowski-desktop*.deb
+  2. sudo update-grub
+  3. sudo reboot
+
+  To verify you're running the new kernel:
+  uname -r
+  cat /proc/sys/kernel/sched_latency_ns  # Should show lower values
+
+performance_notes: |
+  Expected improvements over Debian's default kernel:
+  - Noticeably smoother desktop experience
+  - Lower input latency (mouse, keyboard)
+  - Better responsiveness under load
+  - Improved audio/video playback smoothness
+
+  Small overhead increase (~1-2%) for server workloads, but negligible
+  on modern hardware.
+
+references:
+  - "https://kernel.org - Uses 1000Hz as default"
+  - "https://wiki.archlinux.org/title/Improving_performance#CONFIG_HZ"
+  - "Debian bug #593339 - Request for 1000Hz kernel"

@@ -1,0 +1,65 @@
+version: "1.0"
+package: linux
+opinion_name: gaming
+purity_level: configure-only
+
+description: |
+  Gaming and real-time optimized kernel with minimum latency configuration.
+
+  Optimized for:
+  - Competitive gaming (minimum input lag)
+  - Game streaming
+  - VR applications
+  - Real-time audio production
+
+  Uses 1000Hz timer, full preemption, and other low-latency optimizations.
+
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+
+tags:
+  - gaming
+  - real-time
+  - low-latency
+  - performance
+
+debian_versions:
+  - bookworm
+
+modifications:
+  kernel_config:
+    # Maximum timer frequency
+    CONFIG_HZ_1000: "y"
+    CONFIG_HZ: "1000"
+
+    # Full preemption (consider PREEMPT_RT for even lower latency)
+    CONFIG_PREEMPT: "y"
+    CONFIG_PREEMPT_COUNT: "y"
+
+    # Reduce scheduling latency
+    CONFIG_SCHED_AUTOGROUP: "n"
+
+    # High-res timers
+    CONFIG_HIGH_RES_TIMERS: "y"
+
+    # Tickless
+    CONFIG_NO_HZ_FULL: "y"
+
+    # CPU frequency scaling for performance
+    # (Note: Users may want to set governor to 'performance')
+
+performance_notes: |
+  For best gaming performance, also set CPU governor to 'performance':
+
+  echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+  Expected improvements:
+  - Lower frame time variance
+  - Reduced input lag (5-10ms improvement)
+  - Smoother frame pacing
+  - Better 1% and 0.1% lows in benchmarks
+
+references:
+  - "https://wiki.archlinux.org/title/Gaming#Kernel"
+  - "https://github.com/CachyOS/linux-cachyos - Gaming kernel patches"

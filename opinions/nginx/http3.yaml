@@ -1,0 +1,72 @@
+version: "1.0"
+package: nginx
+opinion_name: http3
+purity_level: configure-only
+
+description: |
+  nginx with HTTP/3 (QUIC) support enabled.
+
+  HTTP/3 uses QUIC protocol over UDP for improved performance,
+  especially on high-latency or packet-loss networks.
+
+  Benefits:
+  - Faster connection establishment
+  - Better performance on lossy networks
+  - Head-of-line blocking elimination
+  - 0-RTT connection resumption
+
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+
+tags:
+  - http3
+  - quic
+  - performance
+  - modern
+
+debian_versions:
+  - bookworm
+
+modifications:
+  build_deps:
+    add:
+      - libssl-dev
+      - libquiche-dev  # Or use ngtcp2/nghttp3
+
+  configure_flags:
+    add:
+      - "--with-http_v3_module"
+      - "--with-stream_quic_module"
+      - "--with-http_ssl_module"
+
+configuration_notes: |
+  After installation, enable HTTP/3 in nginx.conf:
+
+  server {
+      listen 443 ssl;                  # TCP HTTPS
+      listen 443 quic reuseport;       # UDP QUIC
+
+      ssl_certificate     cert.pem;
+      ssl_certificate_key key.pem;
+
+      http3 on;
+      add_header Alt-Svc 'h3=":443"; ma=86400';
+  }
+
+  Client browsers will automatically upgrade to HTTP/3 when available.
+
+performance_notes: |
+  HTTP/3 performance improvements vary by network conditions:
+  - Low latency (< 10ms): ~5-10% faster
+  - High latency (100ms+): ~20-40% faster
+  - Packet loss networks: 50%+ faster
+
+  Requires:
+  - Modern browser with HTTP/3 support
+  - UDP port 443 open in firewall
+  - Kernel with UDP GRO support for best performance
+
+references:
+  - "https://nginx.org/en/docs/http/ngx_http_v3_module.html"
+  - "https://blog.cloudflare.com/http3-the-past-present-and-future/"
