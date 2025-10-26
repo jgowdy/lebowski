@@ -319,7 +319,7 @@ class Builder:
             '-w', f'/build/{source_dir.name}',  # Set working directory
         ] + env_args + [
             container_image,
-            'dpkg-buildpackage', '-us', '-uc', '-b', '-d'
+            'dpkg-buildpackage', '-us', '-uc', '-B', '-d'
         ]
 
         if self.verbose:
@@ -435,7 +435,7 @@ class Builder:
             "dpkg-buildpackage",
             "-us",  # Don't sign source
             "-uc",  # Don't sign changes
-            "-b",   # Binary only
+            "-B",   # Architecture-specific binary only (skip -doc packages)
             "-d",   # Don't check build dependencies
         ]
 
