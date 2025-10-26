@@ -26,6 +26,13 @@ RUN apt-get update && \
         python3-pip \
         python3-yaml \
         ca-certificates \
+        libncurses-dev \
+        bison \
+        autoconf \
+        automake \
+        autotools-dev \
+        libtool \
+        pkg-config \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
