@@ -36,11 +36,16 @@ class Builder:
 
         self.container_image = "lebowski/builder:bookworm"
 
-        # Use /build if available (fast RAID), fallback to /tmp
+        # Use unique build directory per package to enable parallel builds
+        # Use /build if available (fast RAID on R820), fallback to /tmp
+        import os
+        package_name = opinion.metadata.package
+        unique_suffix = f"{package_name}-{os.getpid()}"
+
         if Path("/build").exists() and Path("/build").is_dir():
-            self.build_dir = Path("/build/lebowski-build")
+            self.build_dir = Path(f"/build/lebowski-build-{unique_suffix}")
         else:
-            self.build_dir = Path("/tmp/lebowski-build")
+            self.build_dir = Path(f"/tmp/lebowski-build-{unique_suffix}")
 
     def build(self) -> Dict[str, Any]:
         """
