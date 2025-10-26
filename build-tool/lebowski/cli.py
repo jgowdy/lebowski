@@ -234,24 +234,120 @@ def show(ctx, opinion_ref):
 
 
 @main.command()
-@click.argument('package_file', type=click.Path(exists=True))
+@click.argument('manifest_url')
+@click.option('--output-dir', type=click.Path(), default='/tmp/lebowski-verify', help='Output directory for verification')
 @click.pass_context
-def verify(ctx, package_file):
+def verify(ctx, manifest_url, output_dir):
     """
-    Verify a package is reproducible (rebuild and compare hash).
+    Verify a package is reproducible (rebuild from manifest and compare hash).
 
-    Example:
-      lebowski verify nginx-http3_1.24.0-1~opinion1_amd64.deb
+    Examples:
+      lebowski verify https://builds.example.com/bash.manifest.json
+      lebowski verify /path/to/bash.lebowski-manifest.json
     """
-    click.echo(f"🔍 Verifying: {package_file}")
+    import json
+    import urllib.request
+
+    verbose = ctx.obj['VERBOSE']
+
+    click.echo(f"🔍 Verifying build from manifest")
     click.echo()
-    click.echo("(Verification implementation coming soon)")
+
+    # Download or load manifest
+    click.echo(f"📄 Loading manifest: {manifest_url}")
+    try:
+        if manifest_url.startswith('http://') or manifest_url.startswith('https://'):
+            with urllib.request.urlopen(manifest_url) as response:
+                manifest = json.loads(response.read())
+        else:
+            with open(manifest_url, 'r') as f:
+                manifest = json.load(f)
+    except Exception as e:
+        click.echo(f"❌ Failed to load manifest: {e}", err=True)
+        sys.exit(1)
+
+    # Display manifest info
+    source = manifest.get('source', {})
+    opinion = manifest.get('opinion', {})
+    expected_output = manifest.get('output', {})
+
+    click.echo(f"  Package: {source.get('package')} {source.get('version')}")
+    click.echo(f"  Opinion: {opinion.get('name')}")
+    click.echo(f"  Expected hash: {expected_output.get('package_sha256', 'unknown')[:16]}...")
     click.echo()
-    click.echo("This will:")
-    click.echo("  1. Extract opinion from package metadata")
-    click.echo("  2. Rebuild in container")
-    click.echo("  3. Compare SHA256 hashes")
-    click.echo("  4. Report match/mismatch")
+
+    # Recreate opinion from manifest
+    click.echo("🔧 Recreating opinion from manifest...")
+    opinion_data = {
+        'version': '1.0',
+        'package': source.get('package'),
+        'opinion_name': opinion.get('name'),
+        'purity_level': opinion.get('purity_level', 'configure-only'),
+        'description': opinion.get('description', 'Verification rebuild'),
+        'modifications': opinion.get('modifications', {})
+    }
+
+    # Save temporary opinion file
+    import tempfile
+    opinion_file = Path(tempfile.mkdtemp()) / 'verify-opinion.yaml'
+    import yaml
+    with open(opinion_file, 'w') as f:
+        yaml.dump(opinion_data, f)
+
+    # Parse opinion
+    try:
+        opinion_obj = OpinionParser.load(opinion_file)
+    except OpinionError as e:
+        click.echo(f"❌ Invalid opinion in manifest: {e}", err=True)
+        sys.exit(1)
+
+    # Rebuild package
+    click.echo("🔨 Rebuilding package...")
+    try:
+        builder = Builder(
+            opinion=opinion_obj,
+            output_dir=Path(output_dir),
+            use_container=True,  # Always use container for verification
+            keep_sources=False,
+            verbose=verbose,
+        )
+
+        result = builder.build()
+
+        # Compare hashes
+        click.echo()
+        click.echo("🔐 Comparing hashes...")
+        expected_hash = expected_output.get('package_sha256')
+        actual_hash = result['sha256']
+
+        click.echo(f"  Expected: {expected_hash}")
+        click.echo(f"  Got:      {actual_hash}")
+        click.echo()
+
+        if expected_hash == actual_hash:
+            click.echo("✅ VERIFICATION SUCCESSFUL!")
+            click.echo("   Hashes match - build is reproducible!")
+            sys.exit(0)
+        else:
+            click.echo("❌ VERIFICATION FAILED!")
+            click.echo("   Hashes DO NOT match!")
+            click.echo()
+            click.echo("⚠️  This could mean:")
+            click.echo("   - Build is not reproducible")
+            click.echo("   - Toolchain differs")
+            click.echo("   - Manifest is incorrect")
+            click.echo("   - Package has been tampered with")
+            sys.exit(1)
+
+    except BuildError as e:
+        click.echo(f"❌ Rebuild failed: {e}", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"❌ Verification error: {e}", err=True)
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 
 @main.command()
