@@ -11,20 +11,21 @@ ENV LC_ALL=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install build dependencies
-# Pin package versions for reproducibility
+# Note: Using latest versions from bookworm instead of pinned versions
+# TODO: Use snapshot.debian.org with fixed date for true reproducibility
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential=12.9 \
-        devscripts=2.23.4+deb12u1 \
-        fakeroot=1.31-1.2 \
-        debhelper=13.11.4 \
-        dpkg-dev=1.21.22 \
-        quilt=0.67-3 \
-        patch=2.7.6-7 \
-        python3=3.11.2-1+b1 \
-        python3-pip=23.0.1+dfsg-1 \
-        python3-yaml=6.0-3+b2 \
-        ca-certificates=20230311 \
+        build-essential \
+        devscripts \
+        fakeroot \
+        debhelper \
+        dpkg-dev \
+        quilt \
+        patch \
+        python3 \
+        python3-pip \
+        python3-yaml \
+        ca-certificates \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
