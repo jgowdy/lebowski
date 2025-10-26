@@ -257,15 +257,15 @@ class Builder:
         with open(rules_file, 'r') as f:
             lines = f.readlines()
 
-        # Comment out lines 229-244 (bash-doc package installation)
+        # Comment out bash-doc package installation section
         # These lines try to cd into bash-doc directories that don't exist when building arch-only
         modified = False
         new_lines = []
         in_bash_doc_section = False
 
-        for i, line in enumerate(lines, 1):
-            # Start of bash-doc section
-            if i == 229 and ': # files for the bash-doc package' in line:
+        for line in lines:
+            # Start of bash-doc section (search by comment text, not line number)
+            if 'files for the bash-doc package' in line:
                 in_bash_doc_section = True
                 new_lines.append(f"# LEBOWSKI WORKAROUND: Commented out bash-doc section (doesn't work with -B)\n")
                 new_lines.append(f"# {line}")
@@ -273,7 +273,7 @@ class Builder:
                 continue
 
             # End of bash-doc section (start of bash-builtins section)
-            if in_bash_doc_section and ': # files for the bash-builtins package' in line:
+            if in_bash_doc_section and 'files for the bash-builtins package' in line:
                 in_bash_doc_section = False
                 new_lines.append(line)
                 continue
@@ -281,7 +281,7 @@ class Builder:
             # Comment out lines in bash-doc section
             if in_bash_doc_section:
                 if not line.strip().startswith('#'):
-                    new_lines.append(f"# {line}")
+                    new_lines.append(f"\t# {line}")
                     modified = True
                 else:
                     new_lines.append(line)
