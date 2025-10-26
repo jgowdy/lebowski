@@ -35,7 +35,12 @@ class Builder:
         self.verbose = verbose
 
         self.container_image = "lebowski/builder:bookworm"
-        self.build_dir = Path("/tmp/lebowski-build")
+
+        # Use /build if available (fast RAID), fallback to /tmp
+        if Path("/build").exists() and Path("/build").is_dir():
+            self.build_dir = Path("/build/lebowski-build")
+        else:
+            self.build_dir = Path("/tmp/lebowski-build")
 
     def build(self) -> Dict[str, Any]:
         """
