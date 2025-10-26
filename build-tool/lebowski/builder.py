@@ -332,12 +332,18 @@ class Builder:
             env_args.extend(['-e', f'{key}={value}'])
 
         # Add reproducible build environment
+        # Detect available CPUs and enable parallel builds
+        import os
+        cpu_count = os.cpu_count() or 4
+        # Use all CPUs for compilation speed
+        parallel_jobs = cpu_count
+
         env_args.extend([
             '-e', 'SOURCE_DATE_EPOCH=1704067200',
             '-e', 'TZ=UTC',
             '-e', 'LANG=C.UTF-8',
             '-e', 'LC_ALL=C.UTF-8',
-            '-e', 'DEB_BUILD_OPTIONS=nodoc nocheck',
+            '-e', f'DEB_BUILD_OPTIONS=nodoc nocheck parallel={parallel_jobs}',
             '-e', 'DEB_BUILD_PROFILES=nodoc',
         ])
 
