@@ -78,6 +78,10 @@ class Builder:
             # Step 2: Apply opinion modifications
             print("🔧 Applying opinion modifications...")
             self._apply_opinion(source_dir)
+
+            # Step 2.5: Apply package-specific workarounds
+            self._apply_package_workarounds(source_dir)
+
             manifest['opinion'] = self._get_opinion_metadata()
 
             # Step 3: Build package
@@ -233,6 +237,62 @@ class Builder:
             print(f"  CXXFLAGS: {' '.join(mods.cxxflags)}")
         if mods.ldflags:
             print(f"  LDFLAGS: {' '.join(mods.ldflags)}")
+
+    def _apply_package_workarounds(self, source_dir: Path) -> None:
+        """Apply package-specific workarounds for known build issues"""
+        package = self.opinion.metadata.package
+
+        if package == 'bash':
+            self._fix_bash_doc_issue(source_dir)
+
+    def _fix_bash_doc_issue(self, source_dir: Path) -> None:
+        """Fix bash debian/rules that tries to access bash-doc dirs even with -B flag"""
+        rules_file = source_dir / 'debian' / 'rules'
+        if not rules_file.exists():
+            return
+
+        print("  Applying bash workaround: commenting out bash-doc installation steps")
+
+        # Read the current rules file
+        with open(rules_file, 'r') as f:
+            lines = f.readlines()
+
+        # Comment out lines 229-244 (bash-doc package installation)
+        # These lines try to cd into bash-doc directories that don't exist when building arch-only
+        modified = False
+        new_lines = []
+        in_bash_doc_section = False
+
+        for i, line in enumerate(lines, 1):
+            # Start of bash-doc section
+            if i == 229 and ': # files for the bash-doc package' in line:
+                in_bash_doc_section = True
+                new_lines.append(f"# LEBOWSKI WORKAROUND: Commented out bash-doc section (doesn't work with -B)\n")
+                new_lines.append(f"# {line}")
+                modified = True
+                continue
+
+            # End of bash-doc section (start of bash-builtins section)
+            if in_bash_doc_section and ': # files for the bash-builtins package' in line:
+                in_bash_doc_section = False
+                new_lines.append(line)
+                continue
+
+            # Comment out lines in bash-doc section
+            if in_bash_doc_section:
+                if not line.strip().startswith('#'):
+                    new_lines.append(f"# {line}")
+                    modified = True
+                else:
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+
+        if modified:
+            # Write back the modified rules file
+            with open(rules_file, 'w') as f:
+                f.writelines(new_lines)
+            print("  ✓ bash debian/rules patched to skip bash-doc installation")
 
     def _get_opinion_metadata(self) -> Dict[str, Any]:
         """Get opinion metadata for reproducibility manifest"""
