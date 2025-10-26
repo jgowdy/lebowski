@@ -372,7 +372,7 @@ class Builder:
             '-w', f'/build/{source_dir.name}',  # Set working directory
         ] + env_args + [
             container_image,
-            'dpkg-buildpackage', '-us', '-uc', '-B', '-d'
+            'dpkg-buildpackage', '-us', '-uc', '-d'
         ]
 
         # Always print the docker command for debugging
