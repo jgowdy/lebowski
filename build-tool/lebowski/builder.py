@@ -292,6 +292,7 @@ class Builder:
             '-e', 'LANG=C.UTF-8',
             '-e', 'LC_ALL=C.UTF-8',
             '-e', 'DEB_BUILD_OPTIONS=nodoc nocheck',
+            '-e', 'DEB_BUILD_PROFILES=nodoc',
         ])
 
         # Add compiler flags
@@ -401,6 +402,7 @@ class Builder:
 
         # Skip documentation building (avoid texlive dependency)
         env['DEB_BUILD_OPTIONS'] = 'nodoc nocheck'
+        env['DEB_BUILD_PROFILES'] = 'nodoc'
 
         # Record build environment (reproducibility critical!)
         manifest['environment'] = {
