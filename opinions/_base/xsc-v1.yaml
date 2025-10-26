@@ -1,0 +1,90 @@
+version: "1.0"
+package: _base
+opinion_name: xsc-v1
+purity_level: pure-compilation
+description: |
+  XSC Microarchitecture Level 1: Intel Ivy Bridge (2012+) / AMD Piledriver (2012+)
+
+  This is the DEFAULT and REQUIRED baseline for all XSC x86-64 packages.
+  Analogous to Go's GOAMD64 levels, but XSC-v1 starts at Ivy Bridge (Go's v3).
+
+  All XSC packages MUST be compiled with these flags to get the full benefits
+  of the instruction sets available on Ivy Bridge and later CPUs:
+
+  - AVX: 256-bit SIMD vectors (2x wider than SSE)
+  - AES-NI: Hardware AES encryption (5-8x faster crypto)
+  - PCLMULQDQ: Carry-less multiplication (CRC, crypto)
+  - RDRAND: Hardware random number generator
+  - F16C: Half-precision float conversion
+  - SSE4.1/4.2: Extended SSE instructions
+  - POPCNT: Population count
+
+  Benefits:
+  - Cryptography: 5-8x faster AES, better TLS/SSL performance
+  - Compression: Faster CRC32 checksums
+  - Math/Science: 2x vector width improves numerical code
+  - Security: Hardware RNG for better entropy
+  - General: Better code generation, improved branch prediction
+
+  Minimum CPUs:
+  - Intel: Core i3/i5/i7 3xxx series (2012+), Xeon E5 v2 (2013+)
+  - AMD: FX-series (Piledriver, 2012+), Ryzen (all)
+
+  Will NOT run on:
+  - Intel: Sandy Bridge and older (2011-), Atom
+  - AMD: Bulldozer and older (2011-), older APUs
+
+tags:
+  - xsc
+  - baseline
+  - ivybridge
+  - performance
+
+maintainer:
+  name: "XSC Project"
+  email: "xsc@example.com"
+
+modifications:
+  cflags:
+    - "-march=ivybridge"
+    - "-mtune=generic"
+    - "-O2"
+    - "-pipe"
+    - "-fstack-protector-strong"
+    - "-D_FORTIFY_SOURCE=2"
+
+  cxxflags:
+    - "-march=ivybridge"
+    - "-mtune=generic"
+    - "-O2"
+    - "-pipe"
+    - "-fstack-protector-strong"
+    - "-D_FORTIFY_SOURCE=2"
+
+  ldflags:
+    - "-Wl,-z,relro"
+    - "-Wl,-z,now"
+
+notes: |
+  This base opinion should be inherited by ALL XSC package opinions unless
+  a higher level (xsc-v2, xsc-v3) is explicitly needed.
+
+  Why -march=ivybridge -mtune=generic?
+  - -march=ivybridge: Enables all Ivy Bridge instructions (AVX, AES-NI, RDRAND)
+  - -mtune=generic: Optimizes for average CPU, not just Ivy Bridge (better on newer CPUs)
+
+  This is XSC-v1, analogous to Go's GOAMD64=v3 (though Go's v3 is Haswell).
+  We chose Ivy Bridge because:
+  - AES-NI is mandatory for security (constant-time crypto)
+  - RDRAND provides hardware RNG
+  - AVX gives 2x SIMD width over SSE
+  - 99.8% of users in 2025 have this hardware
+  - Only excludes CPUs from 2011 and earlier (14+ years old)
+
+  See docs/XSC-CPU-BASELINE.md for detailed justification.
+
+  Example usage in package-specific opinion:
+    inherits: _base/xsc-v1
+    modifications:
+      configure_flags:
+        - "--enable-foo"  # Package-specific flags are ADDED to base flags

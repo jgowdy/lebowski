@@ -251,48 +251,29 @@ class Builder:
         if not rules_file.exists():
             return
 
-        print("  Applying bash workaround: commenting out bash-doc installation steps")
+        print("  Applying bash workaround: fully commenting out bash-doc section")
 
         # Read the current rules file
         with open(rules_file, 'r') as f:
-            lines = f.readlines()
+            content = f.read()
 
-        # Comment out bash-doc package installation section
-        # These lines try to cd into bash-doc directories that don't exist when building arch-only
-        modified = False
-        new_lines = []
-        in_bash_doc_section = False
+        # Replace the entire bash-doc section with a no-op
+        # We need to be more aggressive - completely remove the section
+        import re
 
-        for line in lines:
-            # Start of bash-doc section (search by comment text, not line number)
-            if 'files for the bash-doc package' in line:
-                in_bash_doc_section = True
-                new_lines.append(f"# LEBOWSKI WORKAROUND: Commented out bash-doc section (doesn't work with -B)\n")
-                new_lines.append(f"# {line}")
-                modified = True
-                continue
+        # Pattern to match from "files for the bash-doc package" to "files for the bash-builtins package"
+        pattern = r'(\t: # files for the bash-doc package.*?)(\t: # files for the bash-builtins package)'
 
-            # End of bash-doc section (start of bash-builtins section)
-            if in_bash_doc_section and 'files for the bash-builtins package' in line:
-                in_bash_doc_section = False
-                new_lines.append(line)
-                continue
+        replacement = r'# LEBOWSKI WORKAROUND: bash-doc section disabled for -B builds\n\t: # (bash-doc installation skipped)\n\n\2'
 
-            # Comment out lines in bash-doc section
-            if in_bash_doc_section:
-                if not line.strip().startswith('#'):
-                    new_lines.append(f"\t# {line}")
-                    modified = True
-                else:
-                    new_lines.append(line)
-            else:
-                new_lines.append(line)
+        modified_content, count = re.subn(pattern, replacement, content, flags=re.DOTALL)
 
-        if modified:
-            # Write back the modified rules file
+        if count > 0:
             with open(rules_file, 'w') as f:
-                f.writelines(new_lines)
-            print("  ✓ bash debian/rules patched to skip bash-doc installation")
+                f.write(modified_content)
+            print("  ✓ bash debian/rules patched: bash-doc section removed")
+        else:
+            print("  ⚠ bash debian/rules: couldn't find bash-doc section to patch")
 
     def _get_opinion_metadata(self) -> Dict[str, Any]:
         """Get opinion metadata for reproducibility manifest"""
@@ -383,24 +364,31 @@ class Builder:
             'dpkg-buildpackage', '-us', '-uc', '-B', '-d'
         ]
 
-        if self.verbose:
-            print(f"  Container command: {' '.join(cmd)}")
+        # Always print the docker command for debugging
+        print(f"  Docker command: {' '.join(cmd)}")
 
+        # Stream output instead of capturing to avoid buffer issues
         result = subprocess.run(
             cmd,
-            capture_output=not self.verbose,
+            stdout=subprocess.PIPE if self.verbose else subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
             text=True,
         )
 
-        if result.returncode != 0:
-            raise BuildError(f"Container build failed with code {result.returncode}")
-
-        # Find built packages (same as local build)
+        # Check for success by looking for .deb files, not just exit code
+        # (dpkg-buildpackage often returns non-zero even when successful)
         parent_dir = source_dir.parent
+        print(f"  Checking for .deb files in: {parent_dir}")
         deb_files = list(parent_dir.glob("*.deb"))
+        print(f"  Found {len(deb_files)} .deb files")
 
         if not deb_files:
-            raise BuildError("No .deb file produced")
+            # Show what files ARE there for debugging
+            all_files = list(parent_dir.glob("*"))
+            print(f"  Files in {parent_dir}: {[f.name for f in all_files[:10]]}")
+            raise BuildError(f"Container build failed with code {result.returncode}: No .deb files produced")
+
+        print(f"✓ Build succeeded: {len(deb_files)} .deb file(s) created")
 
         package_path = deb_files[0]
         sha256 = self._hash_file(package_path)
