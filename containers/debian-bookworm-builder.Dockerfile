@@ -33,6 +33,7 @@ RUN apt-get update && \
         autotools-dev \
         libtool \
         pkg-config \
+        texinfo \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
