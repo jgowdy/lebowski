@@ -1,0 +1,17 @@
+--- a/sysdeps/unix/sysv/linux/x86_64/syscall.S
++++ b/sysdeps/unix/sysv/linux/x86_64/syscall.S
+@@ -33,7 +33,13 @@ ENTRY (syscall)
+ 	movq %r8, %r10
+ 	movq %r9, %r8
+ 	movq 8(%rsp),%r9	/* arg6 is on the stack.  */
+-	syscall			/* Do the system call.  */
++	/* XSC MODIFICATION:
++	 * Replace syscall instruction with call to xsc_syscall()
++	 * This eliminates the syscall instruction from the binary.
++	 * Arguments are already in correct registers (rax, rdi, rsi, rdx, r10, r8, r9).
++	 * xsc_syscall() preserves the same calling convention.
++	 */
++	call xsc_syscall@PLT	/* Call XSC runtime instead of syscall instruction.  */
+ 	cmpq $-4095, %rax	/* Check %rax for error.  */
+ 	jae SYSCALL_ERROR_LABEL	/* Jump to error handler if error.  */
+ 	ret			/* Return to caller.  */
