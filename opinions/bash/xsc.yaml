@@ -1,0 +1,45 @@
+version: "1.0"
+package: bash
+opinion_name: xsc
+purity_level: configure-only
+
+extends: ../_base/xsc-baseline.yaml
+
+description: |
+  Bash built with XSC toolchain - Zero Syscall Instructions
+  
+  This is the PROOF OF CONCEPT for XSC integration.
+  
+  When the XSC toolchain exists, this opinion will build bash with:
+  - x86_64-xsc-linux-gnu-gcc compiler
+  - libxsc-rt for ring-based syscalls
+  - ZERO syscall instructions (verified via objdump)
+  
+  Build command:
+    lebowski build bash \
+      --opinion-file opinions/bash/xsc.yaml \
+      --container-image lebowski/builder:xsc \
+      --output-dir /tmp/bash-xsc
+  
+  Verification:
+    dpkg-deb -x /tmp/bash-xsc/bash_*.deb /tmp/bash-verify
+    objdump -d /tmp/bash-verify/bin/bash | grep syscall
+    # Expected: NO OUTPUT (zero syscalls)
+
+maintainer:
+  name: XSC Project
+  email: xsc@lebowski.org
+
+tags: [xsc, bash, proof-of-concept, zero-syscall]
+
+modifications:
+  # Bash-specific XSC modifications
+  configure_args:
+    - "--enable-static-link"
+    - "--without-bash-malloc"  # Use XSC malloc
+    - "--disable-nls"          # Reduce dependencies
+
+  cflags:
+    # Additional bash-specific flags
+    - "-DXSC_BUILD"
+    - "-DRING_SYSCALLS"
