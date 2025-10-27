@@ -54,6 +54,23 @@ Just like package signatures enable distribution mirrors, reproducible builds en
 4. **Build in Container** - Reproducible environment
 5. **Output Package** - Bit-for-bit identical
 
+## Build Receipts (Attestations)
+
+Every build generates a cryptographic receipt - a JSON file containing everything needed to verify and reproduce the build:
+
+- **What was built:** Package name, version, opinion applied
+- **When it was built:** Timestamp (ISO 8601 UTC)
+- **Input attestation:** SHA256 hashes of all source files and opinion YAML
+- **Output attestation:** SHA256 hashes of all generated .deb packages
+- **Build environment:** Builder info, Debian version, architecture
+
+Receipts enable:
+- **Verification:** Confirm your .deb matches the published build
+- **Reproduction:** Rebuild and verify bit-for-bit identical output
+- **Trust:** Cryptographic proof of what was built, when, and from what inputs
+
+Receipts are saved as `<package>_<version>_<arch>_receipt.json` in the output directory.
+
 ## Opinion Purity Levels
 
 - **pure-compilation** (highest trust) - Only CFLAGS/defines, no source changes
@@ -80,6 +97,9 @@ Options:
 - `--output-dir` - Where to put built packages
 - `--no-container` - Build locally (not recommended)
 - `--keep-sources` - Don't delete source after build
+- `--show-receipt` / `--no-show-receipt` - Display build receipt (default: show)
+- `--receipt-format [compact|full|oneline|none]` - Receipt display format (default: compact)
+- `--project-name` - Custom project name (appears in package version)
 
 ### validate
 
@@ -217,7 +237,7 @@ If yes, build it. If no, reconsider.
 
 ## License
 
-GPLv3 or later
+MIT
 
 ## Resources
 
