@@ -11,9 +11,12 @@ Take power from those who currently control package builds (Debian Developers, m
 ## Installation
 
 ```bash
-cd build-tool/
-pip3 install -e .
+git clone https://github.com/jgowdy/lebowski.git
+cd lebowski/build-tool
+pip3 install .
 ```
+
+That's it. The `lebowski` command is now in your PATH.
 
 ## Quick Start
 
