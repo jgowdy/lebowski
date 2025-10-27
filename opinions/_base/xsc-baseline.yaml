@@ -1,6 +1,7 @@
 version: "1.0"
 opinion_name: xsc-baseline
 purity_level: configure-only
+container_image: "lebowski/builder:xsc"
 
 description: |
   XSC Baseline Opinion
