@@ -59,9 +59,6 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
     """
     verbose = ctx.obj['VERBOSE']
 
-    click.echo(f"🎬 Lebowski: Building {package}")
-    click.echo()
-
     # Load configuration
     config = get_config()
 
@@ -106,6 +103,11 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
 
         # Apply configuration defaults to opinion
         opinion_obj = ConfigLoader.apply_defaults_to_opinion(config, opinion_obj, verbose=verbose)
+
+        # Show build header with project name
+        project_name = opinion_obj.metadata.project_name or "Lebowski"
+        click.echo(f"🎬 {project_name}: Building {package}")
+        click.echo()
 
         # Show opinion info
         click.echo(f"✓ Opinion loaded: {opinion_obj.metadata.opinion_name}")

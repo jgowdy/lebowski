@@ -115,6 +115,12 @@ verification_notes: |
 
 ### Optional Fields
 
+#### `project_name`
+- Custom project name displayed in build outputs and attestations
+- Defaults to "Lebowski" if not specified
+- Allows derivative projects to use their own branding (e.g., "XSC Linux", "MyProject")
+- Example: `project_name: "XSC Linux"`
+
 #### `xsc_variant`
 - XSC-specific: `base` or `cfi-compat`
 - Only for XSC builds

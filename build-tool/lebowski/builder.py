@@ -304,6 +304,7 @@ class Builder:
             'package': self.opinion.metadata.package,
             'purity_level': self.opinion.metadata.purity_level,
             'description': self.opinion.metadata.description,
+            'project_name': self.opinion.metadata.project_name,  # Custom project name (e.g., "XSC Linux")
             'file': str(opinion_file) if opinion_file else None,
             'file_sha256': opinion_hash,
             'modifications': {

@@ -33,6 +33,7 @@ class OpinionMetadata:
     tags: List[str] = field(default_factory=list)
     debian_versions: List[str] = field(default_factory=list)
     container_image: Optional[str] = None  # e.g., "lebowski/builder:xsc"
+    project_name: Optional[str] = None  # e.g., "XSC Linux" - defaults to "Lebowski"
 
 
 @dataclass
@@ -128,6 +129,7 @@ class OpinionParser:
             tags=data.get('tags', []),
             debian_versions=data.get('debian_versions', []),
             container_image=data.get('container_image'),  # Optional: specific container for this opinion
+            project_name=data.get('project_name'),  # Optional: custom project name (defaults to "Lebowski")
         )
 
         # Parse modifications
@@ -301,7 +303,7 @@ class OpinionParser:
             scripts=merged_scripts,
         )
 
-        # Merge metadata - child overrides parent, except container_image inherits if not specified
+        # Merge metadata - child overrides parent, except container_image and project_name inherit if not specified
         merged_metadata = OpinionMetadata(
             version=child.metadata.version,
             package=child.metadata.package,
@@ -313,6 +315,8 @@ class OpinionParser:
             debian_versions=child.metadata.debian_versions,
             # Inherit container_image from parent if child doesn't specify it
             container_image=child.metadata.container_image or parent.metadata.container_image,
+            # Inherit project_name from parent if child doesn't specify it
+            project_name=child.metadata.project_name or parent.metadata.project_name,
         )
 
         # Create merged opinion with merged metadata
