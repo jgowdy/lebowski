@@ -251,14 +251,71 @@ def search(ctx, package):
       lebowski search nginx
       lebowski search    # List all
     """
+    import os
+    from pathlib import Path
+
+    opinions_dir = Path("opinions")
+
+    if not opinions_dir.exists():
+        click.echo("❌ Opinions directory not found: opinions/", err=True)
+        click.echo("   Make sure you're running from the Lebowski repository root", err=True)
+        sys.exit(1)
+
     click.echo("🔍 Searching opinions...")
     click.echo()
-    click.echo("(Opinion repository integration coming soon)")
+
+    # Find all opinion YAML files
+    opinions_found = {}
+    for package_dir in sorted(opinions_dir.iterdir()):
+        if not package_dir.is_dir() or package_dir.name.startswith('_'):
+            continue
+
+        pkg_name = package_dir.name
+
+        # Filter by package if specified
+        if package and package not in pkg_name:
+            continue
+
+        # Find YAML files in this package directory
+        yaml_files = list(package_dir.glob("*.yaml"))
+        if yaml_files:
+            opinions_found[pkg_name] = []
+            for yaml_file in sorted(yaml_files):
+                opinion_name = yaml_file.stem
+                try:
+                    opinion = OpinionParser.load(yaml_file)
+                    desc = opinion.metadata.description.split('\n')[0][:50]
+                    purity = opinion.metadata.purity_level
+                    opinions_found[pkg_name].append({
+                        'name': opinion_name,
+                        'desc': desc,
+                        'purity': purity
+                    })
+                except Exception:
+                    # Skip invalid opinions
+                    pass
+
+    if not opinions_found:
+        if package:
+            click.echo(f"No opinions found for package: {package}")
+        else:
+            click.echo("No opinions found in opinions/ directory")
+        sys.exit(0)
+
+    # Display results
+    total_opinions = sum(len(opinions) for opinions in opinions_found.values())
+    click.echo(f"Found {total_opinions} opinion(s) in {len(opinions_found)} package(s):")
     click.echo()
-    click.echo("For now, check the opinions/ directory:")
-    click.echo("  opinions/linux/       - Kernel opinions")
-    click.echo("  opinions/nginx/       - nginx opinions")
-    click.echo("  opinions/python3/     - Python opinions")
+
+    for pkg_name, opinions in opinions_found.items():
+        click.echo(f"📦 {pkg_name}")
+        for opinion in opinions:
+            trust_level = OpinionParser.get_purity_trust_level(opinion['purity'])
+            click.echo(f"   • {opinion['name']:<20} [{opinion['purity']:<20}] {trust_level} trust")
+            click.echo(f"     {opinion['desc']}")
+        click.echo()
+
+    click.echo("Use 'lebowski show <package>:<opinion>' for details")
 
 
 @main.command()

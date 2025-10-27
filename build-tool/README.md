@@ -114,6 +114,24 @@ lebowski show nginx:http3
 lebowski show linux:desktop-1000hz
 ```
 
+### search
+
+Search for available opinions:
+
+```bash
+lebowski search nginx      # Search for nginx opinions
+lebowski search            # List all opinions
+```
+
+### verify
+
+Verify package reproducibility by rebuilding from a manifest and comparing hashes:
+
+```bash
+lebowski verify https://builds.example.com/bash.manifest.json
+lebowski verify /path/to/bash.lebowski-manifest.json
+```
+
 ## Example: Build Custom Kernel
 
 ```bash
