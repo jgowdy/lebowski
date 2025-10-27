@@ -45,8 +45,9 @@ def main(ctx, verbose):
 @click.option('--output-dir', type=click.Path(), default='.', help='Output directory for built packages')
 @click.option('--container/--no-container', default=None, help='Build in container (reproducible)')
 @click.option('--keep-sources', is_flag=True, help='Keep source directory after build')
+@click.option('--project-name', help='Custom project name for build outputs (overrides opinion)')
 @click.pass_context
-def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sources):
+def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sources, project_name):
     """
     Build a package with an opinion.
 
@@ -104,9 +105,13 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
         # Apply configuration defaults to opinion
         opinion_obj = ConfigLoader.apply_defaults_to_opinion(config, opinion_obj, verbose=verbose)
 
+        # Override project_name from CLI if provided
+        if project_name:
+            opinion_obj.metadata.project_name = project_name
+
         # Show build header with project name
-        project_name = opinion_obj.metadata.project_name or "Lebowski"
-        click.echo(f"🎬 {project_name}: Building {package}")
+        display_name = opinion_obj.metadata.project_name or "Unknown project"
+        click.echo(f"🎬 {display_name}: Building {package}")
         click.echo()
 
         # Show opinion info
