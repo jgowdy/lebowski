@@ -1,0 +1,16 @@
+lebowski (0.1.0-1) unstable; urgency=medium
+
+  * Initial Debian release
+  * Features:
+    - Container-based reproducible builds
+    - Opinion-based package modifications
+    - Build manifests with full provenance
+    - Package signing support
+    - XSC toolchain integration
+  * Documentation:
+    - Comprehensive getting started guide
+    - APT-style CLI design
+    - Container provenance tracking
+    - Publishing and build receipts
+
+ -- Lebowski Project <opinions@lebowski.org>  Sun, 27 Oct 2025 12:00:00 +0000

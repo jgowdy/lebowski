@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+# Debian rules for Lebowski package build
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build/ *.egg-info/
+
+override_dh_auto_install:
+	dh_auto_install
+	# Install documentation
+	install -d debian/lebowski/usr/share/doc/lebowski
+	cp -r ../docs/* debian/lebowski/usr/share/doc/lebowski/
+	cp ../README.md debian/lebowski/usr/share/doc/lebowski/
+
+override_dh_python3:
+	dh_python3 --shebang=/usr/bin/python3

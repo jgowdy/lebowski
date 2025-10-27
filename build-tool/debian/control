@@ -1,0 +1,44 @@
+Source: lebowski
+Section: devel
+Priority: optional
+Maintainer: John Gowdy <jgowdy@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-yaml,
+               python3-debian,
+               python3-click,
+               python3-requests
+Standards-Version: 4.6.0
+Homepage: https://github.com/jgowdy/lebowski
+Vcs-Browser: https://github.com/jgowdy/lebowski
+Vcs-Git: https://github.com/jgowdy/lebowski.git
+
+Package: lebowski
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-yaml,
+         python3-debian,
+         python3-click,
+         python3-requests,
+         docker.io | podman,
+         build-essential,
+         dpkg-dev
+Recommends: gnupg
+Description: Reproducible Debian package builder with opinions
+ Lebowski enables cryptographically verifiable package builds using
+ opinions (YAML configs) and containers. Anyone can rebuild and verify
+ identical binaries.
+ .
+ Features:
+  - Bit-for-bit reproducible builds
+  - Opinion-based build modifications
+  - Container isolation for consistency
+  - Build manifests with full provenance
+  - GPG package signing support
+  - XSC (zero-syscall) toolchain integration
+ .
+ Lebowski is designed for building custom Linux distributions,
+ security auditing, and supply chain verification.
