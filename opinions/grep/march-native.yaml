@@ -1,0 +1,16 @@
+extends: ../_common/march-native.yaml
+version: "1.0"
+package: grep
+opinion_name: march-native
+purity_level: pure-compilation
+description: grep built with -march=native optimization for maximum performance
+maintainer:
+  name: Jay Gowdy
+  email: jay@gowdy.me
+tags: [optimized, native, performance]
+debian_versions: [bookworm, jammy]
+modifications:
+  env: {}
+  cflags: []
+  cxxflags: []
+  ldflags: []
