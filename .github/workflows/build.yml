@@ -1,0 +1,85 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        cd build-tool
+        pip install -r requirements.txt
+        pip install build wheel setuptools
+
+    - name: Build package
+      run: |
+        cd build-tool
+        python -m build
+
+    - name: Test installation
+      run: |
+        cd build-tool
+        pip install .
+        lebowski --version
+        lebowski --help
+
+    - name: Upload artifacts (Python 3.12 only)
+      if: matrix.python-version == '3.12'
+      uses: actions/upload-artifact@v4
+      with:
+        name: lebowski-package
+        path: build-tool/dist/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        cd build-tool
+        pip install build wheel setuptools
+
+    - name: Build package
+      run: |
+        cd build-tool
+        python -m build
+
+    - name: Attach to release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build-tool/dist/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
