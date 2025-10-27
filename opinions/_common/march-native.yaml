@@ -1,0 +1,19 @@
+version: "1.0"
+package: "*"
+opinion_name: march-native
+purity_level: pure-compilation
+description: Build with -march=native optimization for maximum native CPU performance
+maintainer:
+  name: Jay Gowdy
+  email: jay@gowdy.me
+tags: [optimized, native, performance, common]
+debian_versions: [bookworm, jammy, sid]
+modifications:
+  env: {}
+  cflags:
+    - "-march=native"
+    - "-mtune=native"
+  cxxflags:
+    - "-march=native"
+    - "-mtune=native"
+  ldflags: []

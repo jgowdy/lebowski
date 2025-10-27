@@ -1,3 +1,4 @@
+extends: ../_common/march-native.yaml
 version: "1.0"
 package: sed
 opinion_name: march-native
@@ -10,8 +11,6 @@ tags: [optimized, native, performance]
 debian_versions: [bookworm, jammy]
 modifications:
   env: {}
-  cflags:
-    - "-march=native"
-    - "-mtune=native"
+  cflags: []
   cxxflags: []
   ldflags: []
