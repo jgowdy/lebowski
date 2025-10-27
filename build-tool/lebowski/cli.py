@@ -19,6 +19,7 @@ from . import __version__
 from .opinion import OpinionParser, OpinionError
 from .builder import Builder, BuildError
 from .attestation import generate_attestation
+from .config import get_config, ConfigLoader
 
 
 @click.group()
@@ -42,7 +43,7 @@ def main(ctx, verbose):
 @click.option('--opinion', '-o', help='Opinion name from repository')
 @click.option('--opinion-file', type=click.Path(exists=True), help='Local opinion YAML file')
 @click.option('--output-dir', type=click.Path(), default='.', help='Output directory for built packages')
-@click.option('--container/--no-container', default=True, help='Build in container (reproducible)')
+@click.option('--container/--no-container', default=None, help='Build in container (reproducible)')
 @click.option('--keep-sources', is_flag=True, help='Keep source directory after build')
 @click.pass_context
 def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sources):
@@ -54,19 +55,26 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
       lebowski build nginx --opinion http3
       lebowski build python3 --opinion optimized
       lebowski build nginx --opinion-file my-opinion.yaml
+      lebowski build bash  # Uses default opinion from config
     """
     verbose = ctx.obj['VERBOSE']
 
     click.echo(f"🎬 Lebowski: Building {package}")
     click.echo()
 
-    if not container:
+    # Load configuration
+    config = get_config()
+
+    # Determine container setting (CLI > config)
+    use_container = container if container is not None else config.build.use_container
+
+    if not use_container:
         click.echo("⚠️  WARNING: Building without container - build may not be reproducible!")
         click.echo("   Reproducibility is our economic foundation. Use containers.")
         if not click.confirm("   Continue anyway?"):
             sys.exit(1)
 
-    # Load opinion
+    # Resolve opinion
     if opinion_file:
         click.echo(f"📄 Loading opinion from: {opinion_file}")
         opinion_path = Path(opinion_file)
@@ -79,18 +87,65 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
             click.echo(f"   (Opinion repository integration coming soon)", err=True)
             sys.exit(1)
     else:
-        click.echo("❌ Either --opinion or --opinion-file is required", err=True)
-        sys.exit(1)
+        # Try to use default opinion from config
+        default_opinion = ConfigLoader.get_default_opinion(config, package)
+        if default_opinion:
+            click.echo(f"📦 Using default opinion for {package}: {default_opinion}")
+            opinion_path = Path(f"opinions/{package}/{default_opinion}.yaml")
+            if not opinion_path.exists():
+                click.echo(f"❌ Default opinion not found: {opinion_path}", err=True)
+                sys.exit(1)
+        else:
+            click.echo("❌ Either --opinion or --opinion-file is required", err=True)
+            click.echo(f"   Or configure a default opinion in /etc/lebowski.conf", err=True)
+            sys.exit(1)
 
     try:
         # Parse opinion
         opinion_obj = OpinionParser.load(opinion_path)
+
+        # Apply configuration defaults to opinion
+        opinion_obj = ConfigLoader.apply_defaults_to_opinion(config, opinion_obj, verbose=verbose)
 
         # Show opinion info
         click.echo(f"✓ Opinion loaded: {opinion_obj.metadata.opinion_name}")
         click.echo(f"  Package: {opinion_obj.metadata.package}")
         click.echo(f"  Purity: {opinion_obj.metadata.purity_level} ({OpinionParser.get_purity_trust_level(opinion_obj.metadata.purity_level)} trust)")
         click.echo(f"  Description: {opinion_obj.metadata.description.split(chr(10))[0][:60]}...")
+
+        # Show container image if opinion specifies one (e.g., XSC opinions)
+        if opinion_obj.metadata.container_image:
+            click.echo(f"  Container: {opinion_obj.metadata.container_image}")
+
+        # Show if config defaults are applied
+        if config.defaults.optimization_level or config.defaults.architecture or config.defaults.cflags:
+            click.echo()
+            click.echo("⚙️  Applied config defaults:")
+            if config.defaults.optimization_level:
+                click.echo(f"  Optimization: -O{config.defaults.optimization_level}")
+            if config.defaults.architecture:
+                click.echo(f"  Architecture: -march={config.defaults.architecture}")
+            if config.defaults.lto:
+                click.echo(f"  LTO: enabled")
+            if config.defaults.cflags:
+                click.echo(f"  Global CFLAGS: {' '.join(config.defaults.cflags)}")
+
+        # Show normalization warnings
+        if hasattr(opinion_obj, '_normalization_warnings') and opinion_obj._normalization_warnings:
+            click.echo()
+            click.echo("⚠️  Flag conflicts resolved:")
+            for warning in opinion_obj._normalization_warnings:
+                click.echo(f"  {warning}")
+
+        # Show final flags in verbose mode
+        if verbose:
+            from .flag_normalizer import FlagNormalizer
+            click.echo()
+            click.echo("📋 Final compiler flags:")
+            cflags_categorized = FlagNormalizer.explain_flags(opinion_obj.modifications.cflags)
+            for category, flags in cflags_categorized.items():
+                click.echo(f"  {category}: {' '.join(flags)}")
+
         click.echo()
 
         # Build
@@ -100,6 +155,7 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
             use_container=container,
             keep_sources=keep_sources,
             verbose=verbose,
+            default_container_image=config.build.container_image,
         )
 
         click.echo("🔨 Starting build...")
@@ -348,6 +404,55 @@ def verify(ctx, manifest_url, output_dir):
             import traceback
             traceback.print_exc()
         sys.exit(1)
+
+
+@main.command()
+@click.option('--system', is_flag=True, help='Generate system config (/etc/lebowski.conf)')
+@click.option('--user', is_flag=True, help='Generate user config (~/.config/lebowski/config.yaml)')
+@click.pass_context
+def config(ctx, system, user):
+    """
+    Generate example configuration file.
+
+    Examples:
+      lebowski config --user    # Create user config
+      lebowski config --system  # Show system config (requires sudo to install)
+      lebowski config           # Show config on stdout
+    """
+    example_config = ConfigLoader.create_example_config()
+
+    if system:
+        config_path = ConfigLoader.SYSTEM_CONFIG
+        click.echo(f"📝 Generating system configuration: {config_path}")
+        click.echo()
+        click.echo("⚠️  You will need sudo privileges to write to /etc/")
+        if click.confirm("   Continue?"):
+            try:
+                # Ensure parent directory exists
+                config_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(config_path, 'w') as f:
+                    f.write(example_config)
+                click.echo(f"✅ Configuration written to {config_path}")
+            except PermissionError:
+                click.echo(f"❌ Permission denied. Try: sudo lebowski config --system", err=True)
+                sys.exit(1)
+    elif user:
+        config_path = ConfigLoader.USER_CONFIG
+        click.echo(f"📝 Generating user configuration: {config_path}")
+        click.echo()
+        # Ensure parent directory exists
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, 'w') as f:
+            f.write(example_config)
+        click.echo(f"✅ Configuration written to {config_path}")
+        click.echo()
+        click.echo("Edit this file to customize your defaults:")
+        click.echo(f"  vim {config_path}")
+    else:
+        # Just print to stdout
+        click.echo("# Example Lebowski Configuration")
+        click.echo()
+        click.echo(example_config)
 
 
 @main.command()

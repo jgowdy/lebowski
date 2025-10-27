@@ -27,6 +27,7 @@ class Builder:
         use_container: bool = True,
         keep_sources: bool = False,
         verbose: bool = False,
+        default_container_image: str = "lebowski/builder:bookworm",
     ):
         self.opinion = opinion
         self.output_dir = Path(output_dir)
@@ -34,7 +35,14 @@ class Builder:
         self.keep_sources = keep_sources
         self.verbose = verbose
 
-        self.container_image = "lebowski/builder:bookworm"
+        # Container image precedence:
+        # 1. Opinion's container_image (highest - e.g., XSC opinions specify lebowski/builder:xsc)
+        # 2. Config's default_container_image (from config.build.container_image)
+        # 3. Hardcoded default "lebowski/builder:bookworm" (lowest)
+        self.container_image = (
+            opinion.metadata.container_image or
+            default_container_image
+        )
 
         # Use unique build directory per package to enable parallel builds
         # Use /build if available (fast RAID on R820), fallback to /tmp
@@ -627,12 +635,13 @@ class Builder:
         return None
 
     def _ensure_container_image(self, runtime: str) -> str:
-        """Ensure container image exists, build if necessary"""
+        """Ensure container image exists, build or pull if necessary"""
         import os
 
-        image_name = "lebowski/builder:bookworm"
+        # Use the container image determined during __init__ (from opinion or config)
+        image_name = self.container_image
 
-        # Check if image exists
+        # Check if image exists locally
         check_cmd = [runtime, 'images', '-q', image_name]
         result = subprocess.run(check_cmd, capture_output=True, text=True)
 
@@ -640,9 +649,32 @@ class Builder:
             print(f"  Using existing container image: {image_name}")
             return image_name
 
-        # Image doesn't exist - build it
-        print(f"  Building container image: {image_name}")
+        # Image doesn't exist locally - try to pull it first
+        print(f"  Container image not found locally: {image_name}")
+        print(f"  Attempting to pull from registry...")
 
+        pull_cmd = [runtime, 'pull', image_name]
+        result = subprocess.run(pull_cmd, capture_output=not self.verbose, text=True)
+
+        if result.returncode == 0:
+            print(f"  ✓ Container image pulled: {image_name}")
+            return image_name
+
+        # Pull failed - try to build it (only works for default bookworm image)
+        if image_name == "lebowski/builder:bookworm":
+            print(f"  Pull failed, attempting to build locally...")
+            return self._build_default_container_image(runtime, image_name)
+        else:
+            raise BuildError(
+                f"Container image '{image_name}' not found locally and could not be pulled.\n"
+                f"For custom images like XSC toolchain containers, you need to:\n"
+                f"  1. Build the container image manually, or\n"
+                f"  2. Pull it from a registry\n"
+                f"Example: {runtime} build -t {image_name} -f /path/to/Dockerfile"
+            )
+
+    def _build_default_container_image(self, runtime: str, image_name: str) -> str:
+        """Build the default Debian bookworm container image"""
         # Find Dockerfile
         script_dir = Path(__file__).parent.parent.parent  # lebowski/build-tool/lebowski -> lebowski/
         dockerfile = script_dir / "containers" / "debian-bookworm-builder.Dockerfile"

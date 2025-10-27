@@ -29,50 +29,59 @@ debian_versions: [bookworm, jammy]
 
 modifications:
   env:
-    # Use XSC cross-compiler toolchain
-    CC: /opt/xsc-toolchain/bin/x86_64-xsc-linux-gnu-gcc
-    CXX: /opt/xsc-toolchain/bin/x86_64-xsc-linux-gnu-g++
-    AR: /opt/xsc-toolchain/bin/x86_64-xsc-linux-gnu-ar
-    RANLIB: /opt/xsc-toolchain/bin/x86_64-xsc-linux-gnu-ranlib
-    
-    # Add XSC toolchain to PATH
-    PATH: /opt/xsc-toolchain/bin:/usr/bin:/bin
-    
+    # Use host GCC with XSC sysroot
+    # Note: Stage 1 cross-compiler lacks libgcc, so we use host GCC with --sysroot
+    CC: gcc
+    CXX: g++
+    AR: ar
+    RANLIB: ranlib
+
     # XSC runtime library path
-    LD_LIBRARY_PATH: /opt/xsc-toolchain/lib:/usr/local/lib
-    
+    LD_LIBRARY_PATH: /build/xsc/xsc-toolchain/lib:/build/xsc/xsc-toolchain/sysroot/lib64
+
     # pkg-config path for XSC libraries
-    PKG_CONFIG_PATH: /opt/xsc-toolchain/lib/pkgconfig
+    PKG_CONFIG_PATH: /build/xsc/xsc-toolchain/lib/pkgconfig
 
   cflags:
+    # XSC sysroot - critical for using xsc-glibc
+    - "--sysroot=/build/xsc/xsc-toolchain/sysroot"
+
     # Standard hardening flags (compatible with XSC)
     - "-fstack-protector-strong"
     - "-D_FORTIFY_SOURCE=2"
-    
-    # Optimization for size (ring transitions have overhead)
-    - "-Os"
-    
+
+    # Optimization
+    - "-O2"
+
     # XSC-specific: ensure proper ABI
     - "-fno-omit-frame-pointer"
 
+  cxxflags:
+    # XSC sysroot for C++ as well
+    - "--sysroot=/build/xsc/xsc-toolchain/sysroot"
+    - "-fstack-protector-strong"
+    - "-D_FORTIFY_SOURCE=2"
+    - "-O2"
+    - "-fno-omit-frame-pointer"
+
   ldflags:
+    # XSC sysroot for linking
+    - "--sysroot=/build/xsc/xsc-toolchain/sysroot"
+
     # Link XSC runtime library
+    - "-L/build/xsc/xsc-toolchain/lib"
     - "-lxsc-rt"
-    
-    # Static linking preferred (avoids glibc syscalls)
-    - "-static"
-    
-    # Ensure XSC lib path is searched
-    - "-L/opt/xsc-toolchain/lib"
+
+    # Runtime library path
+    - "-Wl,-rpath=/build/xsc/xsc-toolchain/lib"
+
+    # Use XSC dynamic linker
+    - "-Wl,--dynamic-linker=/build/xsc/xsc-toolchain/sysroot/lib64/ld-linux-x86-64.so.2"
 
   configure_args:
-    # Prefer static builds
-    - "--enable-static"
-    - "--disable-shared"
-    
-    # Cross-compilation settings
-    - "--host=x86_64-xsc-linux-gnu"
+    # Build for x86_64 (not cross-compiling, using sysroot instead)
     - "--build=x86_64-pc-linux-gnu"
+    - "--host=x86_64-pc-linux-gnu"
 
 verification:
   zero_syscall: true
@@ -83,9 +92,9 @@ verification:
       cmd: "dpkg-deb -x {package}.deb /tmp/xsc-verify"
     
     - name: "Find all ELF binaries"
-      cmd: "find /tmp/xsc-verify -type f -executable -exec file {} \; | grep ELF"
-    
+      cmd: "find /tmp/xsc-verify -type f -executable -exec file {} \\; | grep ELF"
+
     - name: "Verify zero syscall instructions"
-      cmd: "find /tmp/xsc-verify -type f -executable -exec objdump -d {} \; | grep syscall"
+      cmd: "find /tmp/xsc-verify -type f -executable -exec objdump -d {} \\; | grep syscall"
       expected_exit: 1  # grep returns 1 when no match (success!)
       expected_output: ""  # No syscall instructions found
