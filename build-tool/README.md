@@ -77,10 +77,6 @@ Receipts are saved as `<package>_<version>_<arch>_receipt.json` in the output di
 - **configure-only** (high trust) - Only build flags, no patches
 - **patches** (lower trust) - Source modifications
 
-## Status
-
-**Alpha** - Core functionality implemented. Container builds, verification, and repository integration coming soon.
-
 ## Commands
 
 ### build
@@ -116,22 +112,6 @@ Show opinion details:
 ```bash
 lebowski show nginx:http3
 lebowski show linux:desktop-1000hz
-```
-
-### search
-
-Search opinions (coming soon):
-
-```bash
-lebowski search nginx
-```
-
-### verify
-
-Verify package reproducibility (coming soon):
-
-```bash
-lebowski verify package.deb
 ```
 
 ## Example: Build Custom Kernel
