@@ -46,8 +46,10 @@ def main(ctx, verbose):
 @click.option('--container/--no-container', default=None, help='Build in container (reproducible)')
 @click.option('--keep-sources', is_flag=True, help='Keep source directory after build')
 @click.option('--project-name', help='Custom project name for build outputs (overrides opinion)')
+@click.option('--show-receipt/--no-show-receipt', default=True, help='Show build attestation (receipt) after build')
+@click.option('--receipt-format', type=click.Choice(['compact', 'full', 'oneline', 'none']), default='compact', help='Receipt format to display')
 @click.pass_context
-def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sources, project_name):
+def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sources, project_name, show_receipt, receipt_format):
     """
     Build a package with an opinion.
 
@@ -172,6 +174,26 @@ def build(ctx, package, opinion, opinion_file, output_dir, container, keep_sourc
         click.echo("✅ Build successful!")
         click.echo(f"📦 Package: {result['package_path']}")
         click.echo(f"🔐 SHA256: {result['sha256']}")
+
+        # Display attestation (receipt) if requested
+        if show_receipt and receipt_format != 'none':
+            from .attestation import generate_attestation
+            # Derive manifest path from package path
+            package_path = Path(result['package_path'])
+            package_name = package_path.stem  # name without .deb
+            manifest_filename = f"{package_name}.lebowski-manifest.json"
+            manifest_path = package_path.parent / manifest_filename
+
+            if manifest_path.exists():
+                click.echo()
+                click.echo("═" * 70)
+                click.echo("📋 BUILD ATTESTATION (RECEIPT)")
+                click.echo("═" * 70)
+                attestation = generate_attestation(manifest_path, format=receipt_format)
+                click.echo(attestation)
+                click.echo("═" * 70)
+                click.echo(f"📄 Full manifest: {manifest_path}")
+
         click.echo()
         click.echo("Install with:")
         click.echo(f"  sudo dpkg -i {result['package_path']}")
