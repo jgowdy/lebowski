@@ -41,6 +41,8 @@ python3 -m lebowski.cli build bash \
 sha256sum output/bash-*.deb output2/bash-*.deb
 ```
 
+**New to Lebowski?** See **[Getting Started Guide](docs/GETTING-STARTED.md)** for installation, tutorials, and workflows.
+
 ## Proven Reproducibility
 
 ```
@@ -80,6 +82,26 @@ modifications:
   ldflags: []
 ```
 
+## Documentation
+
+**Getting Started:**
+- **[Getting Started Guide](docs/GETTING-STARTED.md)** - Installation, first build, tutorials
+- [CLI Reference](docs/CLI-REFERENCE.md) - Complete command-line documentation
+- [Config Reference](docs/CONFIG-REFERENCE.md) - Configuration file options
+
+**Core Features:**
+- [Opinions Format](docs/OPINIONS.md) - How to write opinion files
+- [Package Signing](docs/PACKAGE-SIGNING.md) - GPG signing and verification
+- [Data-Driven Toolchains](docs/DATA-DRIVEN-TOOLCHAINS.md) - Custom compiler toolchains
+
+**XSC Integration:**
+- [XSC Overview](docs/XSC-INTEGRATION.md) - Zero-syscall builds
+- [CPU Baseline Optimization](docs/XSC-CPU-BASELINE.md) - Microarchitecture tuning
+- [Aggressive Optimizations](docs/XSC-AGGRESSIVE-OPTS.md) - Performance tuning
+
+**Additional Documentation:**
+- See full list in [docs/](docs/) directory
+
 ## Current Status
 
 **Working:**
@@ -88,12 +110,14 @@ modifications:
 - ✅ Build manifests
 - ✅ Parallel compilation
 - ✅ Automatic workarounds (bash-doc)
+- ✅ Package signing infrastructure
+- ✅ Configuration system
 
-**Next:**
-- [ ] XSC toolchain integration
-- [ ] GPG signing
-- [ ] More package testing
-- [ ] Documentation
+**In Progress:**
+- ⏳ CLI signing flags (--auto-sign, --sign-key)
+- ⏳ Builder signing integration
+- ⏳ XSC toolchain builds
+- ⏳ More package testing
 
 ## Use Cases
 
