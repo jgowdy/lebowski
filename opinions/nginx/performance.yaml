@@ -1,0 +1,29 @@
+version: "1.0"
+package: nginx
+opinion_name: performance
+purity_level: pure-compilation
+description: |
+  High-performance nginx build with aggressive optimization and modern CPU features.
+  Suitable for dedicated servers with known CPU architectures.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [performance, optimized, production]
+debian_versions: [bookworm, jammy]
+modifications:
+  cflags:
+    - "-O3"
+    - "-march=native"
+    - "-mtune=native"
+    - "-flto"
+    - "-fomit-frame-pointer"
+  cxxflags:
+    - "-O3"
+    - "-march=native"
+    - "-mtune=native"
+    - "-flto"
+    - "-fomit-frame-pointer"
+  ldflags:
+    - "-flto"
+    - "-Wl,-O2"
+    - "-Wl,--as-needed"

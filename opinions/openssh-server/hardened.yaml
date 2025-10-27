@@ -1,0 +1,27 @@
+version: "1.0"
+package: openssh-server
+opinion_name: hardened
+purity_level: configure-only
+description: |
+  Security-hardened OpenSSH server build.
+  Enables additional security features and hardening flags.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [security, hardened, production]
+debian_versions: [bookworm, jammy]
+modifications:
+  configure_args:
+    - "--with-audit=linux"
+    - "--with-selinux"
+    - "--with-security-key-builtin"
+  cflags:
+    - "-O2"
+    - "-fstack-protector-strong"
+    - "-fstack-clash-protection"
+    - "-D_FORTIFY_SOURCE=3"
+    - "-fcf-protection=full"
+  ldflags:
+    - "-Wl,-z,relro"
+    - "-Wl,-z,now"
+    - "-Wl,-z,noexecstack"

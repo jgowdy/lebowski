@@ -1,0 +1,30 @@
+version: "1.0"
+package: "*"
+opinion_name: hardened
+purity_level: pure-compilation
+description: |
+  Common security hardening flags for any package.
+  Enables all modern compiler security features.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [security, hardened, common]
+debian_versions: [bookworm, jammy, sid]
+modifications:
+  cflags:
+    - "-fstack-protector-strong"
+    - "-fstack-clash-protection"
+    - "-D_FORTIFY_SOURCE=3"
+    - "-fcf-protection=full"
+    - "-fPIE"
+  cxxflags:
+    - "-fstack-protector-strong"
+    - "-fstack-clash-protection"
+    - "-D_FORTIFY_SOURCE=3"
+    - "-fcf-protection=full"
+    - "-fPIE"
+  ldflags:
+    - "-Wl,-z,relro"
+    - "-Wl,-z,now"
+    - "-Wl,-z,noexecstack"
+    - "-pie"

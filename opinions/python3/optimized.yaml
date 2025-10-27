@@ -1,0 +1,22 @@
+version: "1.0"
+package: python3
+opinion_name: optimized
+purity_level: pure-compilation
+description: |
+  Python 3 with PGO (Profile-Guided Optimization) and LTO.
+  Significantly faster for CPU-bound workloads.
+  Build time is ~3x longer due to PGO profiling.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [performance, pgo, lto]
+debian_versions: [bookworm, jammy]
+modifications:
+  configure_args:
+    - "--enable-optimizations"
+    - "--with-lto"
+  cflags:
+    - "-march=native"
+    - "-mtune=native"
+  env:
+    PROFILE_TASK: "-m test.regrtest --pgo"

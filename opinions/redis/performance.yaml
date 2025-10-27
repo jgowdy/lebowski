@@ -1,0 +1,22 @@
+version: "1.0"
+package: redis
+opinion_name: performance
+purity_level: pure-compilation
+description: |
+  High-performance Redis with aggressive optimization.
+  Optimized for throughput and latency on modern CPUs.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [performance, optimized, cache]
+debian_versions: [bookworm, jammy]
+modifications:
+  cflags:
+    - "-O3"
+    - "-march=native"
+    - "-mtune=native"
+    - "-flto"
+  ldflags:
+    - "-flto"
+  env:
+    OPTIMIZATION: "-O3"

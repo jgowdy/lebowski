@@ -1,0 +1,24 @@
+version: "1.0"
+package: "*"
+opinion_name: size-optimized
+purity_level: pure-compilation
+description: |
+  Build packages optimized for size rather than speed.
+  Useful for embedded systems, containers, or bandwidth-constrained deployments.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [size, embedded, container, common]
+debian_versions: [bookworm, jammy, sid]
+modifications:
+  cflags:
+    - "-Os"
+    - "-ffunction-sections"
+    - "-fdata-sections"
+  cxxflags:
+    - "-Os"
+    - "-ffunction-sections"
+    - "-fdata-sections"
+  ldflags:
+    - "-Wl,--gc-sections"
+    - "-Wl,--as-needed"

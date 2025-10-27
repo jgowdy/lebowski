@@ -1,0 +1,21 @@
+version: "1.0"
+package: nginx
+opinion_name: http3
+purity_level: configure-only
+description: |
+  nginx with HTTP/3 (QUIC) support enabled.
+  Requires nginx built with quictls or BoringSSL.
+maintainer:
+  name: Lebowski Project
+  email: opinions@lebowski.org
+tags: [http3, quic, modern]
+debian_versions: [bookworm, jammy]
+modifications:
+  configure_args:
+    - "--with-http_v3_module"
+    - "--with-http_quic_module"
+    - "--with-stream_quic_module"
+  cflags:
+    - "-O2"
+  env:
+    QUICTLS: "yes"
