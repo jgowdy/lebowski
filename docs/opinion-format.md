@@ -150,7 +150,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
   github: lebowski-project
 
 tags:
@@ -200,7 +200,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 tags:
   - performance
@@ -236,7 +236,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 tags:
   - optimization

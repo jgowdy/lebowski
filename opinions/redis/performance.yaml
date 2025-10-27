@@ -7,7 +7,7 @@ description: |
   Optimized for throughput and latency on modern CPUs.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [performance, optimized, cache]
 debian_versions: [bookworm, jammy]
 modifications:

@@ -473,7 +473,7 @@ Given a manifest from 2025, someone in 2030 can:
 
 ```bash
 # 1. Get manifest
-curl https://builds.lebowski.org/bash_5.1-6.manifest.json > manifest.json
+curl https://builds.bx.ee/bash_5.1-6.manifest.json > manifest.json
 
 # 2. Rebuild base image
 docker pull debian:bookworm-slim@sha256:xyz789...

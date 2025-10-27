@@ -59,7 +59,7 @@ RUN echo "deb-src http://deb.debian.org/debian bookworm main" >> /etc/apt/source
 
 # Configure git for reproducibility
 RUN git config --global user.name "Lebowski Builder" \
-    && git config --global user.email "builder@lebowski.org"
+    && git config --global user.email "builder@bx.ee"
 
 # Create build directory
 RUN mkdir -p /build

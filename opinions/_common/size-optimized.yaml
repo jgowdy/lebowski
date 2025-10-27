@@ -7,7 +7,7 @@ description: |
   Useful for embedded systems, containers, or bandwidth-constrained deployments.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [size, embedded, container, common]
 debian_versions: [bookworm, jammy, sid]
 modifications:

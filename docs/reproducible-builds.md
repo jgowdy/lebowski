@@ -338,7 +338,7 @@ Every package includes attestation:
   "built_by": "lebowski-ci",
   "built_at": "2024-01-15T10:30:00Z",
   "sha256": "...",
-  "buildinfo_url": "https://buildinfo.lebowski.org/..."
+  "buildinfo_url": "https://buildinfo.bx.ee/..."
 }
 ```
 
@@ -373,7 +373,7 @@ Stored and published for every build.
 Public database of all builds:
 
 ```
-https://builds.lebowski.org/nginx/http3/
+https://builds.bx.ee/nginx/http3/
   ├── 1.24.0-1~opinion1/
   │   ├── nginx-http3_1.24.0-1~opinion1_amd64.deb
   │   ├── nginx-http3_1.24.0-1~opinion1_amd64.buildinfo
@@ -431,7 +431,7 @@ If mismatch: **Investigation required**
 
 ### Phase 4: Public Build Database
 
-1. Set up builds.lebowski.org
+1. Set up builds.bx.ee
 2. Store buildinfo, attestations, logs
 3. API for querying builds
 4. Community submission of verification builds
@@ -472,7 +472,7 @@ lebowski attest nginx-http3*.deb
 apt-ftparchive add nginx-http3*.deb
 
 # Publish buildinfo
-cp nginx-http3*.buildinfo builds.lebowski.org/
+cp nginx-http3*.buildinfo builds.bx.ee/
 
 # Sign and publish
 dpkg-sig --sign builder nginx-http3*.deb

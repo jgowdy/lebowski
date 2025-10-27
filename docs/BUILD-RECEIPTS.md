@@ -158,7 +158,7 @@ Package: bash 5.1-6 amd64
 
 ```bash
 # Verify from web URL
-lebowski verify-receipt https://builds.lebowski.org/receipts/bash-5.1-6-xsc.txt
+lebowski verify-receipt https://builds.bx.ee/receipts/bash-5.1-6-xsc.txt
 
 # Verify from GitHub Gist
 lebowski verify-receipt https://gist.githubusercontent.com/alice/12345/receipt.txt

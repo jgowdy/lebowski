@@ -7,7 +7,7 @@ description: |
   Enables all modern compiler security features.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [security, hardened, common]
 debian_versions: [bookworm, jammy, sid]
 modifications:

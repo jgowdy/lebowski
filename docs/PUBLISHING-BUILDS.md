@@ -78,7 +78,7 @@ This creates a tarball with everything needed for reproduction.
 ```bash
 # Upload to build repository
 aws s3 cp publish/bash_5.1-6_xsc_amd64.tar.gz \
-  s3://builds.lebowski.org/bash/5.1-6/xsc/
+  s3://builds.bx.ee/bash/5.1-6/xsc/
 
 # Or publish to GitHub Releases
 gh release create bash-5.1-6-xsc \
@@ -166,8 +166,8 @@ gh release create bash-5.1-6-xsc \
     "key_id": "ABCD1234",
     "fingerprint": "1234 5678 9ABC DEF0 ...",
     "signer_name": "Lebowski Official Builder",
-    "signer_email": "builder@lebowski.org",
-    "public_key_url": "https://builds.lebowski.org/lebowski-public-key.asc"
+    "signer_email": "builder.ee",
+    "public_key_url": "https://builds.bx.ee/lebowski-public-key.asc"
   }
 }
 ```
@@ -402,7 +402,7 @@ echo "Publication bundle created: bash_5.1-6_xsc_amd64.tar.gz"
 ```bash
 # Option 1: AWS S3
 aws s3 cp bash_5.1-6_xsc_amd64.tar.gz \
-  s3://builds.lebowski.org/bash/5.1-6/xsc/
+  s3://builds.bx.ee/bash/5.1-6/xsc/
 
 # Option 2: GitHub Releases
 gh release create bash-5.1-6-xsc \
@@ -437,7 +437,7 @@ Reproducibility:
 - Opinion: bash/xsc.yaml
 
 Download:
-https://builds.lebowski.org/bash/5.1-6/xsc/bash_5.1-6_xsc_amd64.tar.gz
+https://builds.bx.ee/bash/5.1-6/xsc/bash_5.1-6_xsc_amd64.tar.gz
 
 Verify signature:
   gpg --verify bash_5.1-6_amd64.deb.sig bash_5.1-6_amd64.deb
@@ -465,7 +465,7 @@ lebowski publish bash_5.1-6.lebowski-manifest.json \
 
 # Upload to S3
 lebowski publish bash_5.1-6.lebowski-manifest.json \
-  --upload s3://builds.lebowski.org/bash/5.1-6/xsc/
+  --upload s3://builds.bx.ee/bash/5.1-6/xsc/
 
 # Create GitHub release
 lebowski publish bash_5.1-6.lebowski-manifest.json \
@@ -481,7 +481,7 @@ Anyone can verify your published build:
 
 ```bash
 # Download bundle
-wget https://builds.lebowski.org/bash/5.1-6/xsc/bash_5.1-6_xsc_amd64.tar.gz
+wget https://builds.bx.ee/bash/5.1-6/xsc/bash_5.1-6_xsc_amd64.tar.gz
 
 # Extract
 tar xzf bash_5.1-6_xsc_amd64.tar.gz
@@ -500,7 +500,7 @@ cd bash_5.1-6_xsc_amd64
 ```bash
 # Verify from URL
 lebowski verify-published \
-  https://builds.lebowski.org/bash/5.1-6/xsc/bash_5.1-6_xsc_amd64.tar.gz
+  https://builds.bx.ee/bash/5.1-6/xsc/bash_5.1-6_xsc_amd64.tar.gz
 
 # Verify from manifest
 lebowski verify bash_5.1-6.lebowski-manifest.json \
@@ -587,7 +587,7 @@ lebowski publish ./publish/${PACKAGE}_${VERSION}.lebowski-manifest.json \
 # 4. Upload to repository
 echo "Uploading to S3..."
 aws s3 cp ./publish/${PACKAGE}_${VERSION}_xsc_amd64.tar.gz \
-  s3://builds.lebowski.org/$PACKAGE/$VERSION/xsc/
+  s3://builds.bx.ee/$PACKAGE/$VERSION/xsc/
 
 # 5. Create GitHub release
 echo "Creating GitHub release..."

@@ -239,8 +239,8 @@ The `~opinion` ensures official Debian packages take precedence if both are avai
 ### APT Repository Structure
 
 ```
-deb https://repo.lebowski.org/debian bookworm main
-deb https://repo.lebowski.org/opinions bookworm nginx python3 gcc
+deb https://repo.bx.ee/debian bookworm main
+deb https://repo.bx.ee/opinions bookworm nginx python3 gcc
 ```
 
 Or integrate into single repo with components.

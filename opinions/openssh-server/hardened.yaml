@@ -7,7 +7,7 @@ description: |
   Enables additional security features and hardening flags.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [security, hardened, production]
 debian_versions: [bookworm, jammy]
 modifications:

@@ -33,7 +33,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 modifications:
   env: {}

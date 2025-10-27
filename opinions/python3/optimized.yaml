@@ -8,7 +8,7 @@ description: |
   Build time is ~3x longer due to PGO profiling.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [performance, pgo, lto]
 debian_versions: [bookworm, jammy]
 modifications:

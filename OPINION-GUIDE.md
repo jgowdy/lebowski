@@ -221,7 +221,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 tags:
   - test
@@ -265,7 +265,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 tags:
   - optimization
@@ -307,7 +307,7 @@ description: |
 
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 tags:
   - python
@@ -363,7 +363,7 @@ description: |
 
 maintainer:
   name: Lebowski + XSC Project
-  email: opinions@lebowski.org
+  email: jay.me
 
 tags:
   - xsc

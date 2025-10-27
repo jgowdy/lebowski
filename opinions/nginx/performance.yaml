@@ -7,7 +7,7 @@ description: |
   Suitable for dedicated servers with known CPU architectures.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [performance, optimized, production]
 debian_versions: [bookworm, jammy]
 modifications:

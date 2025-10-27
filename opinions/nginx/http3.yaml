@@ -7,7 +7,7 @@ description: |
   Requires nginx built with quictls or BoringSSL.
 maintainer:
   name: Lebowski Project
-  email: opinions@lebowski.org
+  email: jay@gowdy.me
 tags: [http3, quic, modern]
 debian_versions: [bookworm, jammy]
 modifications:

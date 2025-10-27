@@ -14,7 +14,7 @@ setup(
     name="lebowski",
     version="0.1.0-alpha",
     author="Lebowski Project",
-    author_email="opinions@lebowski.org",
+    author_email="jay@gowdy.me",
     description="Build Debian packages with custom opinions - reproducibly",
     long_description=long_description,
     long_description_content_type="text/markdown",
