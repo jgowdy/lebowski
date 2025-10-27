@@ -1,0 +1,17 @@
+version: "1.0"
+package: sed
+opinion_name: march-native
+purity_level: pure-compilation
+description: sed built with -march=native optimization for maximum performance
+maintainer:
+  name: Jay Gowdy
+  email: jay@gowdy.me
+tags: [optimized, native, performance]
+debian_versions: [bookworm, jammy]
+modifications:
+  env: {}
+  cflags:
+    - "-march=native"
+    - "-mtune=native"
+  cxxflags: []
+  ldflags: []
